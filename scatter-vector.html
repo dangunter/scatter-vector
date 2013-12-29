@@ -1,0 +1,157 @@
+<html>
+    <head>
+        <script src="http://trifacta.github.io/vega/lib/d3.v3.min.js"></script>
+        <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+        <!-- ***** Bootstrap ******* -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script> 
+        <!-- ***** END: Bootstrap ******* -->
+        <style type="text/css">
+        body {
+            font-family: Arial, sans-serif;
+        }
+        svg {
+            font-size: 14px;
+        }
+
+        .axis {
+            shape-rendering: crispEdges;
+        }
+
+        .axis line {
+            stroke: #ddd;
+            stroke-width: .5px;
+        }
+
+        .axis path {
+            display: none;
+        }
+
+        rect.extent {
+            fill: #000;
+            fill-opacity: .125;
+            stroke: #fff;
+        }
+
+        rect.frame {
+            fill: #fff;
+            fill-opacity: .7;
+            stroke: #aaa;
+        }
+
+        circle {
+            fill: #ccc;
+            fill-opacity: .5;
+        }
+
+        .legend circle {
+            fill-opacity: 1;
+        }
+
+        .legend text {
+            font-size: 18px;
+            font-style: oblique;
+        }
+
+        .cell text {
+            pointer-events: none;
+        }
+
+        text.yaxis-label {
+        }
+
+        .setosa {
+            fill: #800;
+        }
+
+        .versicolor {
+            fill: #080;
+        }
+
+        .virginica {
+            fill: #008;
+        }
+
+        .axes {
+            width: 150px;
+            float: left;
+            margin-left: 15px;
+            margin-top: 50px;
+        }
+        .axes button {
+            background-color: #FFFFFF;
+        }
+        .axes button.selected {
+            background-color: #CCCCCC;
+        }
+        .plot {
+            width: 1000;
+            height: 300;
+            float: left;
+            margin-left: 20px;
+        }
+        .data {
+            clear: both;
+            width: 80;
+            margin-left: 50px;
+            background-color: #F2F2F2;
+        }
+        </style>
+    </head>
+    <body>
+        <a id="getsel" href="#" onclick="plot.selected(make_table)">Get selected</a>
+        <div class='axes btn-group-vertical'></div>
+        <div class='plot'></div>
+        <table class="data"></table>
+        <!-- local scripts -->
+        <script src="scatter-vector.js"></script>
+        <script>
+        function make_table(result, self) {
+            var thr = d3.select("table.data")
+                .selectAll("tr")
+                  .data(result.slice(0,1))
+                .enter().append("tr")
+            var th = thr.selectAll("th")
+                .data(function(d) {
+                    // return vector of value names
+                    return self.values;
+                })
+              .enter().append("th")
+                .text(function(d) { return d; });                
+            var tr = d3.select("table.data")
+                .selectAll("tr")
+                .data(result)
+                .enter().append("tr");
+            var td = tr.selectAll("td")
+                .data(function(d) {
+                    // return vector of values for each element in 'values'
+                    return self.values.map(function(v) { return d[v]; });
+                })
+              .enter().append("td")
+                .text(function(d) { console.log("text d=",d); return d; });                
+        }
+        var vals = ['sepal length', 'sepal width', 'petal length', 'petal width'];
+        var plot = spvec({url: "iris.csv", values: vals, factors: ['species'], size: 250});
+        var primary = "sepal width";
+        plot.draw(primary);
+        $.each(vals, function(k, v) { 
+            console.log("append val",v);
+            var b = $('<button>')
+                .addClass('btn btn-default')
+                .text(v);
+            $('div.axes').append(b);
+            b.click(function() {
+                if (!$(this).hasClass("selected")) {
+                    $("div.axes button.selected").removeClass("selected");
+                    var primary = $(this).text();
+                    plot.draw(primary);
+                    $(this).addClass("selected");
+                }
+            });
+        });
+        // Mark y-axis button
+        $("div.axes button:contains('" + primary + "')")
+            .addClass("selected");
+        </script>
+    </body>
+</html>
