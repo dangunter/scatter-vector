@@ -71,6 +71,9 @@
         .virginica {
             fill: #008;
         }
+        .zeolite {
+            fill: #008;
+        }
 
         .axes {
             width: 150px;
@@ -130,9 +133,12 @@
               .enter().append("td")
                 .text(function(d) { console.log("text d=",d); return d; });                
         }
-        var vals = ['sepal length', 'sepal width', 'petal length', 'petal width'];
-        var plot = spvec({url: "iris.csv", values: vals, factors: ['species'], size: 250});
-        var primary = "sepal width";
+        //var vals = ['sepal length', 'sepal width', 'petal length', 'petal width'];
+        var vals = ['Df', 'Di', 'Heat of adsorption', 'Henry coefficient', 'density', 'surface area']
+        //var plot = spvec({url: "iris.csv", values: vals, factors: ['species'], size: 250});
+        var plot = spvec({url: "zeo.csv", values: vals, factors:['type'], size: 150})
+        //var primary = "sepal width";
+        var primary = "density"
         plot.draw(primary);
         $.each(vals, function(k, v) { 
             console.log("append val",v);

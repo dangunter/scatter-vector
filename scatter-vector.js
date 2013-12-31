@@ -52,6 +52,7 @@ function spvec(params) {
     //=================
 
     function create_plot(data, primary, is_first) {
+        console.debug("Plotting data:",data);
         var columns = d3.set();
         for (var p in data[0]) { if (!data.hasOwnProperty(p)) { columns.add(p); }}
 
@@ -59,7 +60,7 @@ function spvec(params) {
         if (! columns.has(primary)) {
             throw "primary value '" + primary + "' not in data values";
         }
-        var names = d3.set(columns.values())
+        var names = d3.set(columns.values());
         names.remove(primary);
 
         // If not specified, factors = names - values
@@ -229,6 +230,9 @@ function spvec(params) {
     function plot(p) {
         console.debug("plotting cell");
         var d = self.plot_data; // local alias
+        for (item in d) {
+            console.debug("item", item, "p.y= ", p.y," y[p.y]=", self.y[p.y]," cy=", self.y[p.y](item[p.y]));
+        }
         self.cell = d3.select(this);
 
         // Plot frame.
