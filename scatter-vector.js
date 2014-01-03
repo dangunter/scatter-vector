@@ -129,15 +129,16 @@ function spvec(params) {
         self.plot_data = data;
         self.x = x;
         self.y = y;
+        self.nxticks = self.nyticks = 5;
 
         // Axes.
         console.debug("create axes");
         var x_axis = d3.svg.axis()
-            .ticks(5)
+            .ticks(self.nxticks)
             .tickSize(self.size);
 
         var y_axis = d3.svg.axis()
-            .ticks(5)
+            .ticks(self.nyticks)
             .tickSize(self.size * n);
 
         // Brush.
@@ -151,9 +152,10 @@ function spvec(params) {
         console.debug("create root panel");
         self.svg = d3.select(".plot").append("svg:svg")
             //.attr("width", 1200)
-            //.attr("height", 600)
+            //.attr("height", 300)
             .append("svg:g")
-            .attr("transform", "translate(" + self.padding*3 + "," + self.padding + ")");
+              .attr("transform", "translate(" + 50 + "," + self.padding + ")");
+              //.attr("transform", "translate(" + self.padding*3 + "," + self.padding + ")");
 
         // Legend.
         console.debug("create legend");
@@ -181,9 +183,18 @@ function spvec(params) {
         self.svg.selectAll("g.x.axis")
             .data(values)
             .enter().append("svg:g")
-            .attr("class", "x axis")
-            .attr("transform", function(d, i) { return "translate(" + i * self.size + ",0)"; })
-            .each(function(d) { d3.select(this).call(x_axis.scale(x[d]).orient("bottom")); });
+              .attr("class", "x axis")
+              .attr("transform", function(d, i) { return "translate(" + i * self.size + ",0)"; })
+            .each(function(d) {
+                d3.select(this)
+                    .call(x_axis.scale(x[d]).orient("bottom"));
+                var sz_rt = self.size / Math.sqrt(2);
+                d3.select(this)
+                    .selectAll("text")
+                        .attr("dx", "-0.2em")
+                        .attr("dy", "0.2em")
+                        .attr("transform", "translate(" + -sz_rt + "," + sz_rt/2 + ") rotate(-45)");
+            });
 
         // Y-axis.
         console.debug("draw Y axis");
@@ -207,14 +218,15 @@ function spvec(params) {
             .each(plot);
 
         // Axis titles.
-        console.debug("axis titles")
+        console.debug("x-axis titles")
         cell.append("svg:text")
             .attr("x", self.padding)
             .attr("dx", "1em")
             .attr("y", self.padding + self.size)
-            .attr("dy", "2em")
+            .attr("dy", "3em")
             .text(function(d) { return d.x; });
 
+        /*
         var first_cell = self.svg.selectAll("g.first-cell");
         first_cell.filter(function(d) { return d.i === 0; }).append("svg:text")
             .attr("transform", "rotate(270," + self.size/2 + "," + self.size/2 + ")")
@@ -225,14 +237,12 @@ function spvec(params) {
             .attr("style", "text-anchor: middle")
             .classed("yaxis-label", true)
             .text(function(d) { return d.y; });
+        */
     }
 
     function plot(p) {
         console.debug("plotting cell");
-        var d = self.plot_data; // local alias
-        for (item in d) {
-            console.debug("item", item, "p.y= ", p.y," y[p.y]=", self.y[p.y]," cy=", self.y[p.y](item[p.y]));
-        }
+        var data = self.plot_data; // local alias
         self.cell = d3.select(this);
 
         // Plot frame.
@@ -245,12 +255,12 @@ function spvec(params) {
 
         // Plot dots.
         self.cell.selectAll("circle")
-            .data(d)
+            .data(data)
               .enter().append("svg:circle")
             .attr("class", function(d) { return d._group; })
-            .attr("cx", function(d) { return self.x[p.x](d[p.x]); })
-            .attr("cy", function(d) { return self.y[p.y](d[p.y]); })
-            .attr("r", 3);
+            .attr("cx", function(d) { return (isNaN(d[p.x])) ? 0 : self.x[p.x](d[p.x]); })
+            .attr("cy", function(d) { return (isNaN(d[p.y])) ? 0 :self.y[p.y](d[p.y]); })
+            .attr("r", function(d) { return (isNaN(d[p.x]) || isNaN(d[p.y])) ? 0 : 3; } );
 
         // Plot brush.
         self.cell.call(self.brush.x(self.x[p.x])
@@ -259,6 +269,7 @@ function spvec(params) {
 
     // Clear the previously-active brush, if any.
     function brushstart(p) {
+        brush_selected(false);
         var cell = self.svg.selectAll("g.cell");
         if (self.brush.data !== p) {
             cell.call(self.brush.clear());
@@ -281,8 +292,17 @@ function spvec(params) {
             self.svg.selectAll(".cell circle")
                     .attr("class", function(d) { return d._group; });
         }
+        else {
+            brush_selected(true);
+        }
     }
 
+    // Toggle associated page elements when brushed area is selected.
+    function brush_selected(value) {
+        d3.select("#plot-selected").classed("disabled", !value);
+    }
+
+    // Generate a x b    
     function cross(a, b) {
         var c = [], n = a.length, m = b.length, i, j;
         for (i = -1; ++i < n;) {
